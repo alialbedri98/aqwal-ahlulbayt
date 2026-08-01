@@ -1,0 +1,42 @@
+name: نشر يومي لانستغرام
+
+on:
+  schedule:
+    # الأوقات بتوقيت UTC | التوقيت العراقي = UTC+3
+    - cron: '0 6 * * *'   # الساعة 9 صباحاً بتوقيت العراق -> القول الأول
+    - cron: '0 11 * * *'  # الساعة 2 ظهراً بتوقيت العراق  -> القول الثاني
+    - cron: '0 17 * * *'  # الساعة 8 مساءً بتوقيت العراق  -> القول الثالث
+  workflow_dispatch: {}    # يسمح بتشغيل يدوي من تبويب Actions للتجربة
+
+jobs:
+  post:
+    runs-on: ubuntu-latest
+    steps:
+      - name: تنزيل الملفات
+        uses: actions/checkout@v4
+
+      - name: تجهيز بايثون
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: تثبيت المكتبات
+        run: pip install requests
+
+      - name: تحديد ترتيب القول (1 أو 2 أو 3)
+        id: pick
+        run: |
+          case "${{ github.event.schedule }}" in
+            "0 6 * * *")  echo "order=1" >> "$GITHUB_OUTPUT" ;;
+            "0 11 * * *") echo "order=2" >> "$GITHUB_OUTPUT" ;;
+            "0 17 * * *") echo "order=3" >> "$GITHUB_OUTPUT" ;;
+            *)            echo "order=1" >> "$GITHUB_OUTPUT" ;;
+          esac
+
+      - name: نشر القول
+        env:
+          IG_USER_ID: ${{ secrets.IG_USER_ID }}
+          IG_ACCESS_TOKEN: ${{ secrets.IG_ACCESS_TOKEN }}
+          GH_PAGES_BASE: ${{ vars.GH_PAGES_BASE }}
+          ORDER: ${{ steps.pick.outputs.order }}
+        run: python post_instagram.py
