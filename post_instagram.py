@@ -82,7 +82,7 @@ def main():
         print(f"لم يتم العثور على قول لليوم {day} بالترتيب {order}")
         sys.exit(1)
 
-    image_url = f"{gh_pages_base}/posts/day{day:02d}_{order}.jpg"
+    image_url = f"{gh_pages_base}/day{day:02d}_{order}.jpg"
     caption = build_caption(quote, narrator)
 
     print(f"اليوم {day} - القول {order}")
